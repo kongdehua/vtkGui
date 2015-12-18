@@ -1,20 +1,44 @@
-//#include <iostream>
-#include <vtkConeSource.h>
+#include <iostream>
+//#include <vtkConeSource.h>
 
-//static int *x = new int(100);
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+
+#include <vtkSmartPointer.h>
+#include <vtkContextView.h>
+#include <vtkContextScene.h>
+
+#include "myChartXY.h"
+
+static int *x = new int(100);
 int main(int argc, char **argv)
 {
-/*
   int *xx = new int[100];
 	//std::cout << " hello " << std::endl;
 
-	delete []xx;
+	//delete []xx;
+/*
 	//delete x;
 */
 	
-	vtkConeSource *cone = vtkConeSource::New();
-	cone->PrintSelf(std::cout, vtkIndent());
+	//vtkConeSource *cone = vtkConeSource::New();
+	//cone->PrintSelf(std::cout, vtkIndent());
 
+	std::cout << " hello " << std::endl;
+	std::cout << " hello " << x[2] << std::endl;
+
+	vtkSmartPointer<vtkContextView> view = 
+		vtkSmartPointer<vtkContextView>::New();
+	view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
+
+	myChartXY *chart = myChartXY::New();
+	view->GetScene()->AddItem(chart);
+
+	//chart->AddPlot(vtkChart::LINE);
+
+	view->GetInteractor()->Initialize();
+	view->GetInteractor()->Start();
 
 	return 0;
 };
