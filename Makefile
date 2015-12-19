@@ -1,5 +1,6 @@
-all :
-	-(ls build || mkdir build) > /dev/null 2>&1 && cd build && cmake .. && make && cd ..
+all : 
+	-(ls build > /dev/null 2>&1 || mkdir build) && cd build && cmake .. && make && cd ..
 
-clean :
-	-rm -rf build > /dev/null 2 >&1
+clean:
+	-(ls build > /dev/null 2>&1 && rm -rf build) || echo  
+	-(ls tags  > /dev/null 2>&1 && rm -rf tags) || echo
