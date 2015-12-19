@@ -56,5 +56,31 @@ vtkContextActor添加到Renderer中后，取出vtkContextScene，并且需要在
 
 实现方式，大概使用Interaction中的大量已存在vtkWidget的方式。
 
-### 案例1
+### vtk的实现方案
 1. 创建一个工程，主函数中使用vtkContextView，使用vtkAbstractContextItem绘制图形；（Charts中提供了不少的案例）
+主要需要实现两种功能的函数：绘制、事件处理;
+
+绘制函数：必然使用基础功能中的绘制函数，例如：fltk分别使用不同系统的独自的画线函数，所以，准备使用vtk中自带的绘制函数。
+
+在vtkAbstractContextItem的绘制函数定义：
+	
+	bool vtkAbstractContextItem::Paint(vtkContext2D *painter);
+
+vtk中可使用的绘制函数基本都包含在vtkContext2D中。vtkContext2D中提供绘制2D基元。
+
+	DrawLine // Draw a line
+	DrawPoly // Draw a poly line between the specified points
+	DrawPoint
+	DrawMarker
+	DrawRect
+	DrawQuad
+	DrawPolygon
+	DrawImage
+	DrawStringRect // in Rect
+	DrawString
+
+基本提供了以上功能函数，对于这些功能函数，基本可以直接使用。
+
+
+### vtk的fltk实现方案
+
