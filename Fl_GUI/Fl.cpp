@@ -16,11 +16,14 @@
 #include "Fl.h"
 #include <math.h>
 #include <vtkContext2D.h>
+#include <vtkPen.h>
+#include <vtkBrush.h>
+#include <vtkPoints2D.h>
 
 #define BORDER_WIDTH 2
 
 #define FL_GRAY 17
-#define FL_BLACK 24
+#define FL_BLACK 0
 
 typedef void (Fl_Box_Draw_F)(int x, int y, int w, int h, Fl_Color color);
 
@@ -54,10 +57,6 @@ int Fl::draw_box_active()
 	return draw_it_active; 
 }
 
-void Fl::fl_color(int nIndex)
-{
-}
-
 const unsigned char *Fl::fl_gray_ramp() 
 {
 	return (draw_it_active?active_ramp:inactive_ramp)-'A';
@@ -80,20 +79,20 @@ void Fl::fl_frame(const char* s, int x, int y, int w, int h)
   const uchar *g = fl_gray_ramp();
   if (h > 0 && w > 0) for (;*s;) {
     // draw top line:
-    fl_color(g[(int)*s++]);
-    fl_xyline(x, y, x+w-1);
+    fl_line_color(g[(int)*s++]);
+    fl_xyline(x, y+h, x+w);
     y++; if (--h <= 0) break;
     // draw left line:
-    fl_color(g[(int)*s++]);
-    fl_yxline(x, y+h-1, y);
+    fl_line_color(g[(int)*s++]);
+    fl_yxline(x, y+h, y);
     x++; if (--w <= 0) break;
     // draw bottom line:
-    fl_color(g[(int)*s++]);
-    fl_xyline(x, y+h-1, x+w-1);
+    fl_line_color(g[(int)*s++]);
+    fl_xyline(x, y, x+w);
     if (--h <= 0) break;
     // draw right line:
-    fl_color(g[(int)*s++]);
-    fl_yxline(x+w-1, y+h-1, y);
+    fl_line_color(g[(int)*s++]);
+    fl_yxline(x+w, y+h, y);
     if (--w <= 0) break;
   }
 }
@@ -115,21 +114,22 @@ void Fl::fl_frame2(const char* s, int x, int y, int w, int h)
   const uchar *g = fl_gray_ramp();
   if (h > 0 && w > 0) for (;*s;) {
     // draw bottom line:
-    fl_color(g[(int)*s++]);
-    fl_xyline(x, y+h-1, x+w-1);
-    if (--h <= 0) break;
+    fl_line_color(g[(int)*s++]);
+    fl_xyline(x, y, x+w);
     // draw right line:
-    fl_color(g[(int)*s++]);
-    fl_yxline(x+w-1, y+h-1, y);
-    if (--w <= 0) break;
+    fl_line_color(g[(int)*s++]);
+    fl_yxline(x+w, y+h, y);
     // draw top line:
-    fl_color(g[(int)*s++]);
-    fl_xyline(x, y, x+w-1);
-    y++; if (--h <= 0) break;
+    fl_line_color(g[(int)*s++]);
+    fl_xyline(x, y+h, x+w);
     // draw left line:
-    fl_color(g[(int)*s++]);
-    fl_yxline(x, y+h-1, y);
-    x++; if (--w <= 0) break;
+    fl_line_color(g[(int)*s++]);
+    fl_yxline(x, y+h, y);
+
+    y++; x++; 
+		h -= 2; w-= 2;
+		if (w <= 0) break;
+    if (h <= 0) break;
   }
 }
 
@@ -137,8 +137,9 @@ void Fl::fl_frame2(const char* s, int x, int y, int w, int h)
 void Fl::fl_no_box(int, int, int, int, Fl_Color) 
 {}
 
-void Fl::fl_rectf(int x, int y, int w, int h, Fl_Color)
+void Fl::fl_rectf(int x, int y, int w, int h, Fl_Color c)
 {
+	fl_color(c);
 	fl_rectf(x, y, w, h);
 }
 
@@ -177,9 +178,9 @@ void Fl::fl_up_frame(int x, int y, int w, int h, Fl_Color)
   fl_frame2("HHWW",x,y,w,h);
 #else
 #if BORDER_WIDTH == 2
+  //fl_frame2("AAWWMMTT",x,y,w,h);
   fl_frame2("AAWWMMTT",x,y,w,h);
-
-//////////////////////////////////////////////////////////e
+#else
   fl_frame("AAAAWWJJUTNN",x,y,w,h);
 #endif
 #endif
@@ -192,7 +193,8 @@ void Fl::fl_up_frame(int x, int y, int w, int h, Fl_Color)
 void Fl::fl_up_box(int x, int y, int w, int h, Fl_Color c) 
 {
   fl_up_frame(x,y,w,h,c);
-  fl_color(draw_it_active ? c : fl_inactive(c));
+  //fl_color(draw_it_active ? c : fl_inactive(c));
+  fl_color(c);
   fl_rectf(x+D1, y+D1, w-D2, h-D2);
 }
 
@@ -240,9 +242,10 @@ void Fl::fl_embossed_frame(int x, int y, int w, int h, Fl_Color)
 /** Draws a box of type FL_EMBOSSED_BOX */
 void Fl::fl_embossed_box(int x, int y, int w, int h, Fl_Color c) 
 {
-  fl_embossed_frame(x,y,w,h,c);
   fl_color(draw_it_active ? c : fl_inactive(c));
-  fl_rectf(x+2, y+2, w-4, h-4);
+  fl_rectf(x, y, w, h);
+
+  fl_embossed_frame(x,y,w,h,c);
 }
 
 /**
@@ -251,10 +254,12 @@ void Fl::fl_embossed_box(int x, int y, int w, int h, Fl_Color c)
 */
 void Fl::fl_rectbound(int x, int y, int w, int h, Fl_Color bgcolor) 
 {
-  fl_color(draw_it_active ? FL_BLACK : fl_inactive(FL_BLACK));
+  //fl_color(draw_it_active ? FL_BLACK : fl_inactive(FL_BLACK));
+  fl_color(FL_BLACK);
   fl_rectf(x, y, w, h);
-  fl_color(draw_it_active ? bgcolor : fl_inactive(bgcolor));
-  fl_rectf(x+1, y+1, w-2, h-2);
+  //fl_color(draw_it_active ? bgcolor : fl_inactive(bgcolor));
+  fl_color(bgcolor);
+  fl_rectf(x+2, y+2, w-4, h-4);
 }
 #define fl_border_box fl_rectbound  /**< allow consistent naming */
 
@@ -342,6 +347,54 @@ void Fl::draw_box(Fl_Boxtype t, int X, int Y, int W, int H, Fl_Color c)
 	//draw_it_active = 1;
 }
 
+void Fl::draw_string(const std::string &str, Fl_Boxtype t, int X, int Y, int W, int H, Fl_Color c)
+{
+	vtkPoints2D *rect = vtkPoints2D::New();
+	rect->InsertNextPoint(X, Y);
+	rect->InsertNextPoint(X+W, Y+H);
+
+	if (g_Painter) 
+	{
+		float bounds[4] = {0};
+		g_Painter->ComputeStringBounds( str.c_str(), bounds);
+		/*
+		std::cout << "bounds: " 
+			<< bounds[0] << ", " 
+			<< bounds[1] << ", " 
+			<< bounds[2] << ", "
+			<< bounds[3] << std::endl;
+			*/
+		g_Painter->DrawString( 
+				(int)(X + W / 2 - bounds[2] / 2),
+				(int)(Y + H / 2 - bounds[3] / 2),
+			 	str.c_str());
+	}
+
+	rect->Delete();
+  //void DrawStringRect(vtkPoints2D *rect, const char* string);
+}
+
+void Fl::fl_color(int nIndex)
+{
+	/*
+  if (g_Painter) g_Painter->GetPen()->SetColor( 
+			CMap[nIndex][0],
+			CMap[nIndex][1],
+			CMap[nIndex][2]);
+			*/
+	vtkColor4ub color(CMap[nIndex][0],
+			CMap[nIndex][1],
+			CMap[nIndex][2]);
+  if (g_Painter) g_Painter->GetBrush()->SetColor(color);
+}
+
+void Fl::fl_line_color(int nIndex)
+{
+  if (g_Painter) g_Painter->GetPen()->SetColor( 
+			CMap[nIndex][0],
+			CMap[nIndex][1],
+			CMap[nIndex][2]);
+}
 
 void Fl::fl_xyline(int x, int y, int x1)
 {

@@ -1,8 +1,11 @@
 #ifndef __Fl_h
 #define __Fl_h
 
+#include <string>
+
 typedef unsigned char uchar;
 typedef int Fl_Color;
+
 enum Fl_Boxtype { // boxtypes (if you change these you must fix fl_boxtype.C):
     
   FL_NO_BOX = 0,    ///< nothing is drawn at all, this box is invisible
@@ -72,10 +75,14 @@ public:
 	static void fl_yxline(int x, int y, int y1);
 	static void fl_rectf(int x, int y, int w, int h);
 	static void draw_box(Fl_Boxtype t, int X, int Y, int W, int H, Fl_Color c) ;
+	//static void draw_string(Fl_Boxtype t, int X, int Y, int W, int H, Fl_Color c) ;
+	static void draw_string(const std::string &str, 
+			Fl_Boxtype t, int X, int Y, int W, int H, Fl_Color c);
 
 public:
 	static int draw_box_active();
 	static void fl_color(int nIndex);
+	static void fl_line_color(int nIndex);
 	static const unsigned char *fl_gray_ramp() ;
 
 	static void fl_frame(const char* s, int x, int y, int w, int h);

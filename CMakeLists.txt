@@ -6,6 +6,7 @@ project(vtkGui)
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
 
+include_directories(Fl_GUI)
 add_executable(vtkGui 
 		main.cpp 
 		myChartXY.cpp
@@ -13,8 +14,6 @@ add_executable(vtkGui
 		Fl_GUI/Fl.cpp
 		)
 target_link_libraries(vtkGui ${VTK_LIBRARIES})
-
-
 
 ###################################################
 include(CTest)
